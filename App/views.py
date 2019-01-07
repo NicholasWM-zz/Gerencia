@@ -1,12 +1,12 @@
 from flask import render_template, redirect, url_for, request, flash
 from daoMySQL import Estoque_Tabela, Vendas_Tabela, Historico_Tabela
-from app import app
+from app import app, db
 from models import Produto_Estoque
 from pprint import pprint
 from helpers import verifica_form
-estoque_tabela = Estoque_Tabela()
-vendas_tabela = Vendas_Tabela()
-historico_tabela = Historico_Tabela()
+estoque_tabela = Estoque_Tabela(db)
+vendas_tabela = Vendas_Tabela(db)
+historico_tabela = Historico_Tabela(db)
 
 @app.route('/')
 def index():

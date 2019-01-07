@@ -4,8 +4,8 @@ from copy import copy
 
 class Historico(AcoesBanco):
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, db):
+        super().__init__(db)
 
     def registra_historico(self ,produto , quantidade, situacao=0):
         '''
@@ -20,13 +20,12 @@ class Historico(AcoesBanco):
         super().executa_query('INSERT INTO historico(nome_produto, quantidade, categoria, custo, preco, data, hora, {}) values ("{}", {}, "{}", {}, {}, "{}", "{}", {})'.format(
             acao, produto[1], quantidade, produto[3], produto[4], produto[5], data(), hora(), 1))
 
-
 class Produtos_Tabela(Historico):
     '''
         Responsavel por todas as ações relacionadas a tabela Produtos
     '''
-    def __init__(self):
-        super().__init__()
+    def __init__(self, db):
+        super().__init__(db)
 
     def busca_id_por_nome(self, produto:Produto)->int:
         '''
@@ -58,8 +57,8 @@ class Produtos_Tabela(Historico):
         return super().executa_query_um_resultado('SELECT id from produtos where nome = "{}"'.format(nome_produto))[0]
 
 class Estoque_Tabela(Historico):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, db):
+        super().__init__(db)
 
     def listar(self):
         itens = super().executa_query_varios_resultados(
@@ -181,27 +180,24 @@ class Estoque_Tabela(Historico):
             return True
         return False
 
-
-
-
 class Vendas_Tabela(AcoesBanco):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, db):
+        super().__init__(db)
 
     def listar(self):
         itens = super().executa_query_varios_resultados(
             'SELECT * from vendas where quantidade != 0')
-        indices = []
-        tamanho = len(itens)
-        item = 0
-        while(item < tamanho):
-            i = 0
-            while(i < tamanho):
-                if(itens[item][1] == itens[i][1] and itens[item][3] == itens[i][3]):
-                    if(i != item and [i, item] not in indices):
-                        indices.append([item, i])
-                i += 1
-            item += 1
+        # indices = []
+        # tamanho = len(itens)
+        # item = 0
+        # while(item < tamanho):
+        #     i = 0
+        #     while(i < tamanho):
+        #         if(itens[item][1] == itens[i][1] and itens[item][3] == itens[i][3]):
+        #             if(i != item and [i, item] not in indices):
+        #                 indices.append([item, i])
+        #         i += 1
+        #     item += 1
         return self.cria_objeto(itens)
 
     def cria_objeto(self, produto: Produto):
@@ -214,8 +210,8 @@ class Vendas_Tabela(AcoesBanco):
             return Produto_Venda(produto)
     
 class Historico_Tabela(AcoesBanco):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, db):
+        super().__init__(db)
 
     def listar(self):
         itens = super().executa_query_varios_resultados(

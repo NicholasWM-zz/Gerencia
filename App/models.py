@@ -1,39 +1,38 @@
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import app, db
 from flask_mysqldb import MySQL
-
-class User:
-    @property
-    def password(self):
-        raise AttributeError('Senha não é um atributo que possa ser lido')
-
-    @password.setter
-    def password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def verify_password(self, password):
-        return check_password_hash(self.password_hash, password)
+import sqlite3
 
 class AcoesBanco():
-        def __init__(self):
+        def __init__(self, db):
                 self.db = db
 
         def executa_query(self, query):
-                cursor = self.db.connection.cursor()
-                cursor.execute(query)
-                self.db.connection.commit()
-        
-        def executa_query_um_resultado(self, query):
-                cursor = self.db.connection.cursor()
-                cursor.execute(query)
-                return cursor.fetchone()
-        
-        def executa_query_varios_resultados(self, query):
-                cursor = self.db.connection.cursor()
-                cursor.execute(query)
-                return cursor.fetchall()
+                con = sqlite3.connect('base.db')
 
-class Produto(AcoesBanco):
+                cur = con.cursor()
+                cur.execute(query)
+                con.commit()
+                con.close()
+
+        def executa_query_um_resultado(self, query):
+                con = sqlite3.connect('base.db')
+                cur = con.cursor()
+                cur.execute(query)
+                data = cur.fetchone()
+                print(data)
+                con.close()
+                return data
+    
+        def executa_query_varios_resultados(self, query):
+                con = sqlite3.connect('base.db')
+                cur = con.cursor()
+                cur.execute(query)
+                data = tuple(cur.fetchall())
+                print(data)
+                con.close()
+                return data
+
+class Produto:
     '''
         Abstração do produto individualmente
     '''
@@ -50,6 +49,7 @@ class Produto_Estoque:
         Abstração do estoque de determinado produto e suas caracteristicas
     '''
     def __init__(self, produto):
+        print(produto)
         self.quantidade_atributos = len(produto)
         if(self.quantidade_atributos > 5):
             self.id = produto[0]
