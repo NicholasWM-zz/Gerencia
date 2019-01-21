@@ -1,5 +1,5 @@
 from helpers import data, hora
-from models import Produto_Estoque, Produto, AcoesBanco, Produto_Historico, Produto_Venda
+from models import Produto_Estoque, Produto, AcoesBanco, Produto_Historico, Produto_Venda, Produto_Model
 from copy import copy
 
 class Historico(AcoesBanco):
@@ -19,13 +19,18 @@ class Historico(AcoesBanco):
             acao = "adicionado"
         super().executa_query('INSERT INTO historico(nome_produto, quantidade, categoria, custo, preco, data, hora, {}) values ("{}", {}, "{}", {}, {}, "{}", "{}", {})'.format(
             acao, produto[1], quantidade, produto[3], produto[4], produto[5], data(), hora(), 1))
-
+        
 class Produtos_Tabela(Historico):
     '''
         Responsavel por todas as ações relacionadas a tabela Produtos
     '''
     def __init__(self, db):
         super().__init__(db)
+
+    def busca_por_id(self, id):
+        consulta = super().executa_query_um_resultado(f'SELECT * FROM produtos where id = {id}')
+        return Produto_Model(consulta[1], consulta[2], id = consulta[0])
+        
 
     def busca_id_por_nome(self, produto:Produto)->int:
         '''
@@ -39,16 +44,44 @@ class Produtos_Tabela(Historico):
             novo_produto = self.cria_produto(produto)    #CASO NÃO CRIA UM NOVO PRODUTO
             return novo_produto.id                     #DEVOLVE O ID
         return produto_estoque
-
+    
+    
     def cria_produto(self, produto:Produto)->int:
         '''
             Insere um novo produto na tabela
             e retorna o ID do novo produto
         '''
-        super().executa_query('INSERT INTO Produtos(nome, custo, preco, quantidade) values ("{}", {}, {}, {})'.format(
-            produto.nome, produto.custo, produto.preco, produto.quantidade))
-        return super().executa_query_um_resultado('SELECT id from Produtos where nome = "{}"'.format(produto.nome))[0]
+        busca = super().executa_query_um_resultado(f'SELECT COUNT(*) from produtos where nome = "{produto[0]}"')
+        print(busca)
+        if busca:
+            return False
+        super().executa_query(f'INSERT INTO produtos(nome, categoria) values ("{produto[0]}", "{produto[1]}")')
+        return super().executa_query_um_resultado(f'SELECT id from produtos where nome = "{produto[0]}"')[0]
 
+    def salvar(self, produto):
+        # print(produto.id)
+        if (produto.id):
+            super().executa_query(f"UPDATE produtos set nome = '{produto.nome}', categoria = '{produto.categoria}' where id={produto.id}")
+            # cursor.execute(SQL_ATUALIZA_JOGO, (jogo.nome, jogo.categoria, jogo.console, jogo.id))
+        else:            
+            busca = super().executa_query_varios_resultados(f'SELECT * from produtos where nome = "{produto.nome}"')
+            # print('.>>>>>>>>>>>', busca, len(busca))
+            if len(busca):
+                print(f'<<<<<<<<<<<{busca}>>>>>>>>>>>>>>>')
+                return False
+            super().executa_query(f'INSERT INTO produtos(nome, categoria) values ("{produto.nome}", "{produto.categoria}")')
+            return super().executa_query_um_resultado(f'SELECT * from produtos where nome = "{produto.nome}"')
+            # return not len(busca) == True
+        # cursor.execute(SQL_CRIA_JOGO, (jogo.nome, jogo.categoria, jogo.console))
+    
+    def listar(self):
+        produtos = super().executa_query_varios_resultados('SELECT * from produtos')
+        lista_produtos = []
+        for produto in produtos:
+            lista_produtos.append(Produto_Model(produto[1], produto[2], id=produto[0]))
+        return lista_produtos
+
+            
     def _busca_id(self, nome_produto:str)->int:
         '''
             Busca o ID do produto através do nome e retorna o inteiro,
@@ -90,13 +123,17 @@ class Estoque_Tabela(Historico):
             Caso sim, retorna o id referente ao nome_id
             Caso não, um novo registro é criado
         '''
+        # Caso o objeto tenha caracterisca de lista
+        # Adiciona ao estoque 
         if(type(produto) == list):
+            # Pega o registro, retorna um objeto do registro da tabela
             item = self.cria_objeto(self.procura(produto[0],'id'))[0]
 
             self.adiciona_ao_estoque(item.id, produto[1])
             super().registra_historico(
                 item, produto[1], situacao=1)
         else:
+            # É um novo produto que nao existe na tabela
             item = Produto_Estoque(produto)
             busca_estoque = self.procura(produto.nome, 'nome')
             if(not len(busca_estoque)):   # Caso o produto não tenha registro no estoque
@@ -110,12 +147,14 @@ class Estoque_Tabela(Historico):
                 
                 duplicado = self._verifica_duplicacao(estoque, produto)      #Verifica se valor e preço do produto inserido 
                                                                                 #são iguais ao do estoque
+                # Não é duplicado
                 if(not duplicado):                  
                     # Insere o produto em uma linha diferente
                     self.cria_item_estoque(item)
                     super().registra_historico(
                         self.cria_objeto(self.procura(produto.nome, 'nome'))[0], quantidade, situacao=1)
                 else:
+                    # É duplicado adiciona ao estoque e nao cria novo item
                     self.adiciona_ao_estoque(duplicado, produto.quantidade) # Soma as quantidades(adiciona itens ao estoque)
                     super().registra_historico(
                         self.procura(duplicado, 'id')[0], quantidade,situacao=1)

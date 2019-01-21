@@ -1,0 +1,243 @@
+{% extends "template.html" %}
+{% block conteudo %}
+{{itens[0].nome}}
+<!-- Trigger the modal with a button -->
+<button class="form-control btn btn-success" type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Adicionar Novo Produto</button>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Adicionar Produto</h4>
+            </div>
+            
+            <div class="modal-body">
+                <form action="{{ url_for('novo_produto') }}" method="post" enctype="multipart/form-data">
+                    <figure class="thumb col-md-4">
+                        <!-- O primeiro parametro é o nome da função no caso é a imagem que 
+                                        retorna o resultado da send_from_directory que retorna um 
+                                        arquivo e o segundo nome do arquivo -->
+                        <img class="img-responsive" src="{{ url_for('imagem', nome_arquivo='capa_padrao.jpg') }}">
+                        <figcaption>
+                            <label class="fileContainer">
+                                Adicionar Imagem
+                                <input type="file" name="arquivo" accept="jpg">
+                            </label>
+                        </figcaption>
+                    </figure>
+                    <fieldset>
+                        <div class="form-group">
+                            <label for="nome">Nome</label>
+                            <input type="text" id="nome" name="nome" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="categoria">Categoria</label>
+                            <input type="text" id="categoria" name="categoria" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-salvar botao">Salvar</button>
+                        <a href="{{ url_for("index") }}" class="btn btn-primary botao">Voltar</a>
+                    </fieldset>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="card-columns">
+{% for produto in produtos %}
+    {{produto.nome_arquivo}}
+    <div class="card">
+        <img class="card-img-top" src="uploads/{{produto.nome_imagem}}" alt="Card image cap">
+        <div class="card-body">
+            <h5 class="card-title">{{produto.nome}}</h5>
+            <p class="card-text">This card has supporting text below as a natural lead-in to additional content.</p>
+        </div>
+        <div class="row" style="text-align:center">
+            <div class="sm-col-6">
+                <!-- Trigger the modal with a button -->
+                <button class="btn btn-success" style="width: 80%;" type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal_Editar_{{produto.id}}">Editar</button>
+                
+                <!-- Modal -->
+                <div id="myModal_Editar_{{produto.id}}" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+                
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Editar</h4>
+                            </div>
+                
+                            <div class="modal-body">
+                                <form action="{{ url_for('atualizar') }}" method="POST" enctype="multipart/form-data">
+                                    <input type="hidden" name="id" value="{{ produto.id }}">
+                                
+                                    <figure class="thumb col-md-4">
+                                        <!-- Mostra oque está na variavel capa_jogo, que é passada pelo render template -->
+                                        <img class="img-responsive" src="uploads/{{produto.nome_imagem}}">
+                                        <figcaption>
+                                            <label class="fileContainer">
+                                                Mudar Capa
+                                                <input type="file" name="arquivo" accept=".jpg">
+                                            </Label>
+                                        </figcaption>
+                                    </figure>
+                                
+                                
+                                    <fieldset>
+                                        <div class="form-group">
+                                            <label for="nome">Nome</label>
+                                            <input type="text" id="nome" name="nome" class="form-control" required value="{{produto.nome}}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="categoria">Categoria</label>
+                                            <input type="text" id="categoria" name="categoria" class="form-control" value="{{ produto.categoria }}"
+                                                required>
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-salvar">Salvar</button>
+                                        <a href="{{ url_for('produtos') }}" class="btn btn-primary ">Voltar</a>
+                                    </fieldset>
+                                </form>
+                            </div>
+                
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Fechar</button>
+                            </div>
+                        </div>
+                
+                    </div>
+                </div>
+            </div>
+
+
+
+    <!-- Trigger the modal with a button -->
+    <button class="btn btn-primary" style="width: 80%;" type="button" class="btn btn-info btn-lg" data-toggle="modal"
+        data-target="#myModal_Visualizar_{{produto.id}}">Visualizar</button>
+    
+    <!-- Modal -->
+    <div id="myModal_Visualizar_{{produto.id}}" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+    
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">{{produto.nome|capitalize}}</h4>
+                </div>
+    
+                <div class="modal-body">
+                    <h2>Estoque</h2>
+                    <table id="customers">
+                        <tr>
+                            <th>ID</th>
+                            <th>Item</th>
+                            <th>Quantidade</th>
+                            <th>Categoria</th>
+                            <th>Custo</th>
+                            <th>Preço</th>
+                        </tr>
+                        {% for item in itens %}
+                            {% if(item.nome|lower == produto.nome|lower) %}
+                                <tr>
+                                    <td>{{item.id}}</td>
+                                    <td>{{item.nome}}</td>
+                                    <td>{{item.quantidade}}</td>
+                                    <td>{{item.categoria}}</td>
+                                    <td>{{item.custo}}</td>
+                                    <td>{{item.preco}}</td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </table>
+
+                    <h2>Vendas</h2>
+                        <table id="customers">
+                            <tr>
+                                <th>ID</th>
+                                <th>Item</th>
+                                <th>Quantidade</th>
+                                <th>Categoria</th>
+                                <th>Custo</th>
+                                <th>Preço</th>
+                                <th>Data</th>
+                                <th>Retirado</th>
+                            </tr>
+                            {% for item in itens_vendas %}
+                            {% if item.nome|lower == produto.nome|lower %}
+                            <tr>
+                                <td>{{item.id}}</td>
+                                <td>{{item.nome}}</td>
+                                <td>{{item.quantidade}}</td>
+                                <td>{{item.categoria}}</td>
+                                <td>{{item.custo}}</td>
+                                <td>{{item.preco}}</td>
+                                <td>{{item.data}}</td>
+                                <td>{{item.retirado}}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </table>
+
+                        <h2>Histórico</h2>
+                        <table id="customers">
+                            <tr>
+                                <th>ID</th>
+                                <th>Item</th>
+                                <th>Quantidade</th>
+                                <th>Categoria</th>
+                                <th>Custo</th>
+                                <th>Preço</th>
+                                <th>Data</th>
+                                <th>Hora</th>
+                                <th>Adicionado</th>
+                                <th>Retirado</th>
+                            </tr>
+                            {% for item in historico %}
+                            {% if item.nome|lower == produto.nome|lower %}
+                            <tr>
+                                <td>{{item.id}}</td>
+                                <td>{{item.nome}}</td>
+                                <td>{{item.quantidade}}</td>
+                                <td>{{item.categoria}}</td>
+                                <td>{{item.custo}}</td>
+                                <td>{{item.preco}}</td>
+                                <td>{{item.data}}</td>
+                                <td>{{item.hora}}</td>
+                                <td>{%if item.adicionado %}Sim{%else%}Não{%endif%}</td>
+                                <td>{%if item.retirado %}Sim{%else%}Não{%endif%}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </table>
+                </div>
+    
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+    
+        </div>
+    </div>
+
+
+
+        </div>
+        
+        <div class="card-footer">
+            <small class="text-muted">Last updated 3 mins ago</small>
+        </div>
+    </div>
+{% endfor %}
+</div>
+{% endblock %}

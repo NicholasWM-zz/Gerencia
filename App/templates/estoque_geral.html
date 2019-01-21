@@ -1,48 +1,25 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Gerencia</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="./static/table.css" />
-    <link rel="stylesheet" type="text/css" href="../static/bootstrap.css" />
-</head>
-
-<body>
-    {% with messages = get_flashed_messages() %} {% if messages %}
-    <ul id='messages' class="list-unstyled">
-        {% for message in messages %}
-        <li class="flash-messages form-control success">
-            {{ message }}
-        </li>
+{% extends "template.html" %}
+{% block conteudo %}
+<div class="container">
+    <table id="customers">
+        <tr>
+            <th>ID</th>
+            <th>Item</th>
+            <th>Quantidade</th>
+            <th>Categoria</th>
+            <th>Custo</th>
+            <th>Preço</th>
+        </tr>
+        {% for item in itens %}
+        <tr>
+            <td>{{item[0]}}</td>
+            <td>{{item[1]}}</td>
+            <td>{{item[2]}}</td>
+            <td>{{item[3]}}</td>
+            <td>{{item[4]}}</td>
+            <td>{{item[5]}}</td>
+        </tr>
         {% endfor %}
-        {% endif %}{% endwith %}
-    </ul>
-    <h1 style="text-align:center">Estoque</h1>
-    <div class="container">
-        <table id="customers">
-            <tr>
-                <th>ID</th>
-                <th>Item</th>
-                <th>Quantidade</th>
-                <th>Categoria</th>
-                <th>Custo</th>
-                <th>Preço</th>
-            </tr>
-            {% for item in itens %}
-            <tr>
-                <td>{{item[0]}}</td>
-                <td>{{item[1]}}</td>
-                <td>{{item[2]}}</td>
-                <td>{{item[3]}}</td>
-                <td>{{item[4]}}</td>
-                <td>{{item[5]}}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-</body>
-
-</html>
+    </table>
+</div>
+{% endblock %}

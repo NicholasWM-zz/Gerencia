@@ -1,36 +1,40 @@
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_mysqldb import MySQL
 import sqlite3
-
+from helpers import recupera_imagem
 class AcoesBanco():
         def __init__(self, db):
-                self.db = db
+            self.db = db
 
         def executa_query(self, query):
-                con = sqlite3.connect('base.db')
-
-                cur = con.cursor()
-                cur.execute(query)
-                con.commit()
-                con.close()
+            con = sqlite3.connect(self.db) 
+            cur = con.cursor()
+            cur.execute(query)
+            con.commit()
+            con.close()
 
         def executa_query_um_resultado(self, query):
-                con = sqlite3.connect('base.db')
-                cur = con.cursor()
-                cur.execute(query)
-                data = cur.fetchone()
-                print(data)
-                con.close()
-                return data
+            con = sqlite3.connect(self.db) 
+            cur = con.cursor()
+            cur.execute(query)
+            data = cur.fetchone()
+            con.close()
+            return data
     
         def executa_query_varios_resultados(self, query):
-                con = sqlite3.connect('base.db')
-                cur = con.cursor()
-                cur.execute(query)
-                data = tuple(cur.fetchall())
-                print(data)
-                con.close()
-                return data
+            con = sqlite3.connect(self.db) 
+            cur = con.cursor()
+            cur.execute(query)
+            data = tuple(cur.fetchall())
+            con.close()
+            return data
+
+class Produto_Model:
+    def __init__(self, nome, categoria,id=None):
+        self.id = id
+        self.nome = nome
+        self.categoria = categoria
+        self.nome_imagem = recupera_imagem(self.id)
+        print(self.nome_imagem, id)
+
 
 class Produto:
     '''
@@ -39,9 +43,10 @@ class Produto:
     def __init__(self, produto:tuple):
         self.id = produto[0]
         self.nome = produto[1]
+        # self.nome = produto[2]
 
     def __repr__(self):
-        return '{}'.format(self.nome)
+        return f'{self.id}_{self.nome}'
 
 
 class Produto_Estoque:
@@ -49,7 +54,6 @@ class Produto_Estoque:
         Abstração do estoque de determinado produto e suas caracteristicas
     '''
     def __init__(self, produto):
-        print(produto)
         self.quantidade_atributos = len(produto)
         if(self.quantidade_atributos > 5):
             self.id = produto[0]

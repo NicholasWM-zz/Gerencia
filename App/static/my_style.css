@@ -1,0 +1,18 @@
+.btn-login{
+    width: 100%;
+    height: 100%;
+    font-weight: bold;
+}
+
+.titulo{
+    text-align: center;
+}
+
+.clearfix{
+    clear: both;
+}
+
+.botao{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
