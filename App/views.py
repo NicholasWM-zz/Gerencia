@@ -59,7 +59,6 @@ def novo_produto():
         error = False
         #Salva o produto na tabela enviando o objeto para o método
         retorno = produtos_tabela.salvar(novo_produto)
-        print(">>>>>>>>>>>>>>>>>>>>>>>",retorno)
         if(retorno):
             produto = Produto_Model(retorno[1], retorno[2], id=retorno[0])
             flash("Produto {} salvo com sucesso".format(novo_produto.nome))
@@ -80,7 +79,6 @@ def novo_produto():
 @app.route('/editar/<int:id>')
 def editar(id):
     produto = produtos_tabela.busca_por_id(id)
-    print(produto)
     nome_imagem = recupera_imagem(id)
     return render_template('editar.html'
                            ,titulo='Editando Produto' 
@@ -90,12 +88,10 @@ def editar(id):
 
 @app.route('/atualizar', methods=['POST', ])
 def atualizar():
-    print(request)
     produto = Produto_Model(request.form['nome']
                             ,request.form['categoria']
                             , id=request.form['id'])
     produtos_tabela.salvar(produto)
-    print('>>>>>>>>>>>>>','arquivo' in request.files.keys())
     if('arquivo' in request.files.keys()):
         deleta_arquivo(produto.id)
         request.files["arquivo"].save("{}/capa{}-{}.jpg".format(app.config["UPLOAD_PATH"], produto.id, time()))
@@ -143,9 +139,9 @@ def produtos():
     produtos = produtos_tabela.listar()
     vendas = vendas_tabela.listar()
     historico = historico_tabela.listar()
-    print(produtos)
+    print(estoque)
     return render_template('produtos.html'
-                           ,produtos = produtos
+                           ,produtos=produtos
                            ,itens=estoque
                            ,historico=historico
                            ,itens_vendas= vendas

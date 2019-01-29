@@ -2,7 +2,7 @@
 import sqlite3
 from daoMySQL import Estoque_Tabela, Vendas_Tabela, Produtos_Tabela, Historico_Tabela
 from models import AcoesBanco, Produto_Estoque, Produto_Model
-from ddl import sqls, dados
+from ddl import sqls, dados, dados_produtos
 from unittest import TestCase, main
 from random import randint
 from helpers import excluir_base_teste_db
@@ -67,7 +67,7 @@ class TesteFuncionalidades(TestCase):
     def test_deve_criar_nova_linha_caso_nao_exista_produto_com_mesmo_nome_na_tabela(self):
         produto = self.acao_banco.executa_query_varios_resultados('SELECT * from estoque')[0]     #Corrigir para pegar o primeiro resultado apenas
         tamanho_tabela_antes = self.acao_banco.executa_query_um_resultado(f'SELECT count(*) from estoque') 
-        novo_produto =  'produto_' + str(randint(1000, 9999)) + '_' + str(randint(1000, 9999)) 
+        novo_produto = 'produto_3' 
         self.estoque_tabela.insere_estoque(Produto_Estoque((novo_produto,
                                                             produto[2],
                                                             produto[3],
@@ -179,7 +179,7 @@ class TesteFuncionalidades(TestCase):
         # print(f">>>>>>{nova_consulta} x {consulta} <<<<<<<<")
         self.assertGreater(nova_consulta, consulta)
     
-    def test_nao_deve_registrar_produto_caso_exista_na_tabela_e_retorno_deve_ser_false(self):
+    def test_nao_deve_registrar_produto_na_tabela_produtos_caso_ja_exista_na_tabela_e_o_retorno_deve_ser_false(self):
         novo_produto = Produto_Model("Nome_Produto", "Categorico")
         
         self.produto_tabela.salvar(novo_produto)
@@ -195,6 +195,61 @@ class TesteFuncionalidades(TestCase):
         self.assertEqual(nova_consulta, consulta)
         self.assertEqual(False, retorno)
 
+    def test_nao_deve_permitir_inserir_no_estoque_produtos_que_nao_estejam_registrados_na_tabela_produtos_e_deve_retornar_false(self):
+        
+        consulta = self.acao_banco.executa_query_um_resultado(
+            "SELECT COUNT(*) from estoque")
+        
+        item = Produto_Estoque(('nomealskdnlkasdaiwdin',
+                                5,
+                                'TESTE',
+                                5,
+                                10))
+        retorno = self.estoque_tabela.insere_estoque(item, quantidade=item.quantidade)
+
+        nova_consulta = self.acao_banco.executa_query_um_resultado(
+            "SELECT COUNT(*) from estoque")
+
+        self.assertEqual(nova_consulta[0], consulta[0])
+        self.assertEqual(retorno, False)
+
+    def test_deve_inserir_produto_no_estoque_caso_o_produto_esteja_registrado_na_tabela_produtos_e_exista_no_estoque_e_deve_retornar_true(self):
+        produto = self.acao_banco.executa_query_um_resultado('SELECT * from estoque')
+        consulta = self.acao_banco.executa_query_um_resultado(
+            "SELECT COUNT(*) from estoque")
+        
+        item = Produto_Estoque((produto[1],
+                                5,
+                                'TESTE',
+                                5,
+                                10))
+        retorno = self.estoque_tabela.insere_estoque(item, quantidade=item.quantidade)
+
+        nova_consulta = self.acao_banco.executa_query_um_resultado(
+            "SELECT COUNT(*) from estoque")
+
+        self.assertEqual(nova_consulta[0], consulta[0])
+        self.assertEqual(retorno, True)
+    
+    def test_deve_inserir_produto_no_estoque_caso_o_produto_esteja_registrado_na_tabela_produtos_e_nao_exista_no_estoque_e_deve_retornar_true(self):
+        produto = self.acao_banco.executa_query_um_resultado('SELECT * from estoque')
+        self.acao_banco.executa_query(f'delete from estoque where nome = "{produto[1]}"')
+        
+        consulta = self.acao_banco.executa_query_um_resultado(
+            "SELECT COUNT(*) from estoque")
+        
+        item = Produto_Estoque((produto[1],
+                                5,
+                                'TESTE',
+                                5,
+                                10))
+        retorno = self.estoque_tabela.insere_estoque(item, quantidade=item.quantidade)
+
+        nova_consulta = self.acao_banco.executa_query_um_resultado(
+            "SELECT COUNT(*) from estoque")
+
+        self.assertGreater(nova_consulta[0], consulta[0])
+        self.assertEqual(retorno, True)
 
 
 if __name__ == '__main__':
@@ -208,6 +263,8 @@ if __name__ == '__main__':
     #Insere dados no banco
     for dado in dados:
         acao_banco.executa_query(f"INSERT into estoque(nome, quantidade, categoria, custo, preco) values ('{dado[0]}',{dado[1]},'{dado[2]}',{dado[3]},{dado[4]})")
+    for dado in dados_produtos:
+        acao_banco.executa_query(f"INSERT into produtos(nome) values ('{dado}')")
     #Executa os testes
     main()
 

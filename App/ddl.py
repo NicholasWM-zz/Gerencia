@@ -63,6 +63,8 @@ dados = [['produto_1', 5, 'teste', 5, 10],
          ['produto_4', 5, 'teste', 5, 10],
          ['produto_5', 5, 'teste', 5, 10],
          ['produto_6', 5, 'teste', 5, 10]]
+
+dados_produtos = ["produto_1","produto_2", "produto_3", "produto_4"]
 # cur.execute(sql)
 # con.commit()
 # con.close()

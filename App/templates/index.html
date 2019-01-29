@@ -1,3 +1,21 @@
 {% extends "template.html" %}
 {% block conteudo %}
+
+    <button onclick="envia_comando('ligar_hol_chuveiro')" class="form-control btn btn-success">Ligar Holofote</button>
+    <button onclick="envia_comando('desligar_hol_chuveiro')" class="form-control btn btn-danger">Desligar Holofote</button>
+    <button onclick="envia_comando('ligar_luz_centro')" class="form-control btn btn-success">Ligar Centro</button>
+    <button onclick="envia_comando('desligar_luz_centro')" class="form-control btn btn-danger">Desligar Centro</button>
+
+<script>
+
+function envia_comando(comando){
+    let endereco = '192.168.1.40'
+    xhr = new XMLHttpRequest();
+    xhr.open("GET", `http://${endereco}/${comando}`);
+    xhr.send();
+}
+
+</script>
+
+
 {% endblock %}

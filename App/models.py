@@ -33,7 +33,6 @@ class Produto_Model:
         self.nome = nome
         self.categoria = categoria
         self.nome_imagem = recupera_imagem(self.id)
-        print(self.nome_imagem, id)
 
 
 class Produto:

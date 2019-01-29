@@ -52,7 +52,7 @@ class Produtos_Tabela(Historico):
             e retorna o ID do novo produto
         '''
         busca = super().executa_query_um_resultado(f'SELECT COUNT(*) from produtos where nome = "{produto[0]}"')
-        print(busca)
+        
         if busca:
             return False
         super().executa_query(f'INSERT INTO produtos(nome, categoria) values ("{produto[0]}", "{produto[1]}")')
@@ -67,7 +67,7 @@ class Produtos_Tabela(Historico):
             busca = super().executa_query_varios_resultados(f'SELECT * from produtos where nome = "{produto.nome}"')
             # print('.>>>>>>>>>>>', busca, len(busca))
             if len(busca):
-                print(f'<<<<<<<<<<<{busca}>>>>>>>>>>>>>>>')
+                # print(f'<<<<<<<<<<<{busca}>>>>>>>>>>>>>>>')
                 return False
             super().executa_query(f'INSERT INTO produtos(nome, categoria) values ("{produto.nome}", "{produto.categoria}")')
             return super().executa_query_um_resultado(f'SELECT * from produtos where nome = "{produto.nome}"')
@@ -128,36 +128,46 @@ class Estoque_Tabela(Historico):
         if(type(produto) == list):
             # Pega o registro, retorna um objeto do registro da tabela
             item = self.cria_objeto(self.procura(produto[0],'id'))[0]
-
-            self.adiciona_ao_estoque(item.id, produto[1])
-            super().registra_historico(
-                item, produto[1], situacao=1)
+            consulta = super().executa_query_um_resultado(f'SELECT COUNT(*) from produtos where nome = "{item.nome}"')
+           
+            if consulta[0]:
+                self.adiciona_ao_estoque(item.id, produto[1])
+                super().registra_historico(
+                    item, produto[1], situacao=1)
+                return True
+            return False
         else:
             # É um novo produto que nao existe na tabela
-            item = Produto_Estoque(produto)
-            busca_estoque = self.procura(produto.nome, 'nome')
-            if(not len(busca_estoque)):   # Caso o produto não tenha registro no estoque
-                # Cria um novo registro no estoque
-                self.cria_item_estoque(produto)
-                super().registra_historico(
-                    self.cria_objeto(self.procura(produto.nome, 'nome'))[0], quantidade, situacao=1)
-                
-            else:
-                estoque = self.cria_objeto(busca_estoque)     # Retorna um array com um objeto para cada resultado
-                
-                duplicado = self._verifica_duplicacao(estoque, produto)      #Verifica se valor e preço do produto inserido 
-                                                                                #são iguais ao do estoque
-                # Não é duplicado
-                if(not duplicado):                  
-                    # Insere o produto em uma linha diferente
-                    self.cria_item_estoque(item)
+            consulta = super().executa_query_um_resultado(
+            f'SELECT COUNT(*) from produtos where nome = "{produto.nome}"'
+            )
+            if consulta[0]:
+                item = Produto_Estoque(produto)
+                busca_estoque = self.procura(produto.nome, 'nome')
+                if(not len(busca_estoque)):   # Caso o produto não tenha registro no estoque
+                    # Cria um novo registro no estoque
+                    self.cria_item_estoque(produto)
                     super().registra_historico(
                         self.cria_objeto(self.procura(produto.nome, 'nome'))[0], quantidade, situacao=1)
+                    
                 else:
-                    # É duplicado adiciona ao estoque e nao cria novo item
-                    self.adiciona_ao_estoque(duplicado, produto.quantidade) # Soma as quantidades(adiciona itens ao estoque)
-                    super().registra_historico(
-                        self.procura(duplicado, 'id')[0], quantidade,situacao=1)
+                    estoque = self.cria_objeto(busca_estoque)     # Retorna um array com um objeto para cada resultado
+                    
+                    duplicado = self._verifica_duplicacao(estoque, produto)      #Verifica se valor e preço do produto inserido 
+                                                                                    #são iguais ao do estoque
+                    # Não é duplicado
+                    if(not duplicado):                  
+                        # Insere o produto em uma linha diferente
+                        self.cria_item_estoque(item)
+                        super().registra_historico(
+                            self.cria_objeto(self.procura(produto.nome, 'nome'))[0], quantidade, situacao=1)
+                    else:
+                        # É duplicado adiciona ao estoque e nao cria novo item
+                        self.adiciona_ao_estoque(duplicado, produto.quantidade) # Soma as quantidades(adiciona itens ao estoque)
+                        super().registra_historico(
+                            self.procura(duplicado, 'id')[0], quantidade,situacao=1)
+                return True
+            return False
             
         
     def _verifica_duplicacao(self, estoque, produto):
